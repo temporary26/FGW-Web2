@@ -3,54 +3,63 @@ import mongoose from 'mongoose';
 const educationSchema = new mongoose.Schema({
   institution: {
     type: String,
-    required: true,
-    trim: true
+    required: false,
+    trim: true,
+    default: ''
   },
   qualification: {
     type: String,
-    required: true,
-    trim: true
+    required: false,
+    trim: true,
+    default: ''
   },
   time: {
     type: String,
-    required: true,
-    trim: true
+    required: false,
+    trim: true,
+    default: ''
   }
 });
 
 const workExperienceSchema = new mongoose.Schema({
   company: {
     type: String,
-    required: true,
-    trim: true
+    required: false,
+    trim: true,
+    default: ''
   },
   position: {
     type: String,
-    required: true,
-    trim: true
+    required: false,
+    trim: true,
+    default: ''
   },
   time: {
     type: String,
-    required: true,
-    trim: true
+    required: false,
+    trim: true,
+    default: ''
   }
 });
 
 const projectSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
-    trim: true
+    required: false,
+    trim: true,
+    default: ''
   },
   description: {
     type: String,
-    required: true,
-    trim: true
+    required: false,
+    trim: true,
+    default: ''
   },
   languages: {
     type: String,
-    required: true,
-    trim: true
+    required: false,
+    trim: true,
+    default: ''
   }
 });
 
@@ -129,6 +138,14 @@ cvSchema.pre('save', function(next) {
       description: '',
       languages: ''
     }];
+  }
+  
+  if (!this.skills) {
+    this.skills = [];
+  }
+  
+  if (!this.interests) {
+    this.interests = [];
   }
   
   next();
