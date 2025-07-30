@@ -35,11 +35,14 @@ app.use('/api/', limiter);
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
+  'https://fgw-quickcv.vercel.app', // Your Vercel domain
   process.env.CLIENT_URL,
 ].filter(Boolean);
 
 app.use(cors({
   origin: function (origin, callback) {
+    console.log('CORS Origin check:', origin); // Debug logging
+    
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
@@ -47,14 +50,18 @@ app.use(cors({
     const isAllowedOrigin = allowedOrigins.some(allowedOrigin => {
       // Handle exact matches
       if (allowedOrigin === origin) return true;
-      // Handle Vercel domains (ending with .vercel.app)
-      if (origin && origin.endsWith('.vercel.app')) return true;
       return false;
     });
     
-    if (isAllowedOrigin || process.env.NODE_ENV === 'development') {
+    // Handle Vercel domains (ending with .vercel.app)
+    const isVercelDomain = origin && origin.endsWith('.vercel.app');
+    
+    console.log('isAllowedOrigin:', isAllowedOrigin, 'isVercelDomain:', isVercelDomain);
+    
+    if (isAllowedOrigin || isVercelDomain || process.env.NODE_ENV === 'development') {
       callback(null, true);
     } else {
+      console.log('CORS blocked origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
