@@ -36,7 +36,6 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
   process.env.CLIENT_URL,
-  // Add your Vercel domain here once deployed
 ].filter(Boolean);
 
 app.use(cors({
@@ -44,7 +43,16 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+    // Check against allowed origins or if it's a Vercel deployment
+    const isAllowedOrigin = allowedOrigins.some(allowedOrigin => {
+      // Handle exact matches
+      if (allowedOrigin === origin) return true;
+      // Handle Vercel domains (ending with .vercel.app)
+      if (origin && origin.endsWith('.vercel.app')) return true;
+      return false;
+    });
+    
+    if (isAllowedOrigin || process.env.NODE_ENV === 'development') {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));

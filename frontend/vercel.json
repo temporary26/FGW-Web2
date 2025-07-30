@@ -1,27 +1,17 @@
 {
   "version": 2,
-  "name": "quickcv-frontend",
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ],
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "routes": [
+    {
+      "handle": "filesystem"
+    },
     {
       "src": "/(.*)",
       "dest": "/index.html"
     }
   ],
   "env": {
-    "VITE_API_URL": "@vite_api_url"
-  },
-  "build": {
-    "env": {
-      "VITE_API_URL": "@vite_api_url"
-    }
+    "VITE_API_URL": "https://quickcv-backend-dqn1.onrender.com"
   }
 }
