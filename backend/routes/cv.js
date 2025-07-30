@@ -65,53 +65,98 @@ router.post('/', protect, [
   body('personalDetails.fullName')
     .optional()
     .trim()
-    .isLength({ max: 100 })
-    .withMessage('Full name must be less than 100 characters'),
+    .custom((value) => {
+      if (value && value.length > 100) {
+        throw new Error('Full name must be less than 100 characters');
+      }
+      return true;
+    }),
   body('personalDetails.phone')
     .optional()
     .trim()
-    .isLength({ max: 20 })
-    .withMessage('Phone must be less than 20 characters'),
+    .custom((value) => {
+      if (value && value.length > 20) {
+        throw new Error('Phone must be less than 20 characters');
+      }
+      return true;
+    }),
   body('personalDetails.email')
     .optional()
     .trim()
-    .isEmail()
-    .withMessage('Please enter a valid email'),
+    .custom((value) => {
+      if (value === '' || !value) {
+        return true; // Allow empty string
+      }
+      if (!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value)) {
+        throw new Error('Please enter a valid email');
+      }
+      return true;
+    }),
   body('personalDetails.address')
     .optional()
     .trim()
-    .isLength({ max: 200 })
-    .withMessage('Address must be less than 200 characters'),
+    .custom((value) => {
+      if (value && value.length > 200) {
+        throw new Error('Address must be less than 200 characters');
+      }
+      return true;
+    }),
   body('about.profile')
     .optional()
     .trim()
-    .isLength({ max: 1000 })
-    .withMessage('Profile must be less than 1000 characters'),
+    .custom((value) => {
+      if (value && value.length > 1000) {
+        throw new Error('Profile must be less than 1000 characters');
+      }
+      return true;
+    }),
   body('education')
     .optional()
-    .isArray()
-    .withMessage('Education must be an array'),
+    .custom((value) => {
+      if (value !== undefined && !Array.isArray(value)) {
+        throw new Error('Education must be an array');
+      }
+      return true;
+    }),
   body('workExperience')
     .optional()
-    .isArray()
-    .withMessage('Work experience must be an array'),
+    .custom((value) => {
+      if (value !== undefined && !Array.isArray(value)) {
+        throw new Error('Work experience must be an array');
+      }
+      return true;
+    }),
   body('skills')
     .optional()
-    .isArray()
-    .withMessage('Skills must be an array'),
+    .custom((value) => {
+      if (value !== undefined && !Array.isArray(value)) {
+        throw new Error('Skills must be an array');
+      }
+      return true;
+    }),
   body('interests')
     .optional()
-    .isArray()
-    .withMessage('Interests must be an array'),
+    .custom((value) => {
+      if (value !== undefined && !Array.isArray(value)) {
+        throw new Error('Interests must be an array');
+      }
+      return true;
+    }),
   body('projects')
     .optional()
-    .isArray()
-    .withMessage('Projects must be an array')
+    .custom((value) => {
+      if (value !== undefined && !Array.isArray(value)) {
+        throw new Error('Projects must be an array');
+      }
+      return true;
+    })
 ], async (req, res) => {
   try {
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('CV validation errors:', errors.array());
+      console.log('Request body:', JSON.stringify(req.body, null, 2));
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
@@ -142,38 +187,56 @@ router.post('/', protect, [
       cv.interests = interests || cv.interests;
       cv.projects = projects || cv.projects;
       
-      await cv.save();
+      try {
+        await cv.save();
+      } catch (saveError) {
+        console.error('Error saving existing CV:', saveError);
+        return res.status(400).json({
+          success: false,
+          message: 'Error saving CV data',
+          error: saveError.message
+        });
+      }
     } else {
       // Create new CV
-      cv = await CV.create({
-        user: req.user.id,
-        personalDetails: personalDetails || {
-          fullName: '',
-          phone: '',
-          email: '',
-          address: ''
-        },
-        about: about || {
-          profile: ''
-        },
-        education: education || [{
-          institution: '',
-          qualification: '',
-          time: ''
-        }],
-        workExperience: workExperience || [{
-          company: '',
-          position: '',
-          time: ''
-        }],
-        skills: skills || [],
-        interests: interests || [],
-        projects: projects || [{
-          name: '',
-          description: '',
-          languages: ''
-        }]
-      });
+      try {
+        cv = await CV.create({
+          user: req.user.id,
+          personalDetails: personalDetails || {
+            fullName: '',
+            phone: '',
+            email: '',
+            address: ''
+          },
+          about: about || {
+            profile: ''
+          },
+          education: education || [{
+            institution: '',
+            qualification: '',
+            time: ''
+          }],
+          workExperience: workExperience || [{
+            company: '',
+            position: '',
+            time: ''
+          }],
+          skills: skills || [],
+          interests: interests || [],
+          projects: projects || [{
+            name: '',
+            description: '',
+            languages: ''
+          }]
+        });
+      } catch (createError) {
+        console.error('Error creating new CV:', createError);
+        return res.status(400).json({
+          success: false,
+          message: 'Error creating CV data',
+          error: createError.message
+        });
+      }
     }
 
     res.status(200).json({
